@@ -42,7 +42,7 @@ public class RestaurantCategoryRepositoryGateway implements IRestaurantCategoryR
     @Override
     public RestaurantCategory findByID(int id) {
         Optional<RestaurantCategoryEntity> entity = this.repository.findById(id);
-        if (!entity.isPresent()) throw new RestaurantCategoryNotFoundException("Nível de usuário não encontrado");
+        if (!entity.isPresent()) throw new RestaurantCategoryNotFoundException("Tipo de restaurante não encontrado");
 
         return this.mapper.fromEntityToDomain(entity.get());
     }
@@ -58,7 +58,7 @@ public class RestaurantCategoryRepositoryGateway implements IRestaurantCategoryR
     @Override
     public void delete(int id) {
         Optional<RestaurantCategoryEntity> entity = this.repository.findById(id);
-        if (!entity.isPresent()) throw new RestaurantCategoryNotFoundException("Nível de usuário não encontrado");
+        if (!entity.isPresent()) throw new RestaurantCategoryNotFoundException("Tipo de restaurante não encontrado");
 
         this.repository.delete(entity.get());
     }

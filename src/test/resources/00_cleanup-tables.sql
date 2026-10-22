@@ -1,4 +1,5 @@
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE usuarios;
 TRUNCATE TABLE usuarios_tipo;
+TRUNCATE TABLE restaurante_categoria;
 SET FOREIGN_KEY_CHECKS = 1;

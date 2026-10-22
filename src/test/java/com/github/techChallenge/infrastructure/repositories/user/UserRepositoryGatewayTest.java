@@ -1,10 +1,9 @@
-package com.github.techChallenge.infrastructure.repositories;
+package com.github.techChallenge.infrastructure.repositories.user;
 
 import com.github.techChallenge.application.exceptions.UserNotFoundException;
 import com.github.techChallenge.domain.user.Address;
 import com.github.techChallenge.domain.user.User;
 import com.github.techChallenge.domain.user.UserLevel;
-import com.github.techChallenge.infrastructure.repositories.user.UserRepositoryGateway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

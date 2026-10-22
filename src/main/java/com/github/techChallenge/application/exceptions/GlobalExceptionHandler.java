@@ -200,6 +200,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(problemDetail);
     }
 
+    @ExceptionHandler(UserTypeNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleUserTypeNotFound(
+            UserTypeNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        ProblemDetail problem = problemDetailFactory.create(
+                HttpStatus.NOT_FOUND,
+                "Recurso não encontrado",
+                ex.getMessage(),
+                "USER_TYPE_NOT_FOUND",
+                request
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception,

@@ -49,7 +49,7 @@ docker compose --env-file local.env up --build
 
 Isso sobe dois containers:
 
-- `mysql-db` — MySQL 8.4 na porta `3306`
+- `mysql-db` — MySQL 8.4 na porta `3307`
 - `spring-app` — a API na porta `8080` (só inicia depois que o banco está saudável)
 
 As tabelas são criadas automaticamente pelo Hibernate (`ddl-auto=update`).

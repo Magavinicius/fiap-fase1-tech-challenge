@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,9 @@ class UserRepositoryGatewayTest {
 
     @Autowired
     private UserRepositoryGateway userRepositoryGateway;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("Deve criar um usuário no banco de dados")
@@ -74,7 +78,7 @@ class UserRepositoryGatewayTest {
     @Sql(scripts = "/02_users_samples.sql")
     void shouldUpdateAnExistingUserOnDatabase() {
         User user = userRepositoryGateway.findByID(1L);
-        user.update("Usuário alterado", "email alterado", "login alterado",
+        user.update("Usuário alterado", "alterado@email.com", "login alterado",
                 UserLevel.CUSTOMER,
                 new Address(
                         "endereço alterado",
@@ -83,7 +87,7 @@ class UserRepositoryGatewayTest {
                         "89101-121",
                         "Bairro alterado",
                         "cidade alterado",
-                        "uf alterado",
+                        "RJ",
                         "Argentina"
                 ));
         User saved = userRepositoryGateway.update(user, 1L);
@@ -92,11 +96,11 @@ class UserRepositoryGatewayTest {
         assertEquals(LocalDateTime.parse("2026-09-30T17:47:40"), saved.getCreatedAt());
         assertNotEquals(saved.getCreatedAt(), saved.getUpdatedAt());
         assertEquals("Usuário alterado", saved.getName());
-        assertEquals("email alterado", saved.getEmail());
+        assertEquals("alterado@email.com", saved.getEmail());
         assertEquals("login alterado", saved.getLogin());
         assertEquals(user.getPassword(), saved.getPassword());
         assertEquals("89101-121", saved.getAddress().zipCode());
-        assertEquals("uf alterado", saved.getAddress().state());
+        assertEquals("RJ", saved.getAddress().state());
         assertEquals("numero alterado", saved.getAddress().number());
         assertEquals("Bairro alterado", saved.getAddress().neighborhood());
         assertEquals("Argentina", saved.getAddress().country());
@@ -111,7 +115,7 @@ class UserRepositoryGatewayTest {
     @Sql(scripts = "/02_users_samples.sql")
     void shouldThrowAnExceptionOnTryingToUpdateAnUserThatDoesNotExists() {
         User user = userRepositoryGateway.findByID(1L);
-        user.update("Usuário alterado", "email alterado", "login alterado",
+        user.update("Usuário alterado", "alterado@email.com", "login alterado",
                 UserLevel.CUSTOMER, new Address(
                         "endereço alterado",
                         "numero alterado",
@@ -119,7 +123,7 @@ class UserRepositoryGatewayTest {
                         "89101-121",
                         "Bairro alterado",
                         "cidade alterado",
-                        "uf alterado",
+                        "RJ",
                         "Argentina"
                 ));
         assertThrows(UserNotFoundException.class, () ->  userRepositoryGateway.update(user, 4L));
@@ -302,8 +306,32 @@ class UserRepositoryGatewayTest {
     }
 
     @Test
-    void getEncryptPasswordByLogin() {
-        fail("Testar se a senha é retornada, e também realizar um teste cobrindo o comportamento caso o login não exista");
+    @DisplayName("Deve retornar o hash armazenado para o login informado")
+    void shouldReturnEncryptedPasswordByLogin() {
+        String rawPassword = "Senha@123";
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String storedHash = encoder.encode(rawPassword);
+        User user = User.create(
+                "Vinicius", "vinicius.senha@email.com", "vinicius.senha",
+                rawPassword, UserLevel.CUSTOMER,
+                new Address("Rua A", "10", null, "01000-000",
+                        "Centro", "São Paulo", "SP", "Brasil")
+        );
+        user.encodePassword(ignored -> storedHash);
+        userRepositoryGateway.create(user);
+        userRepository.flush();
+
+        String actual = userRepositoryGateway.getEncryptPasswordByLogin("vinicius.senha");
+
+        assertEquals(storedHash, actual);
+        assertNotEquals(rawPassword, actual);
+        assertTrue(encoder.matches(rawPassword, actual));
+    }
+
+    @Test
+    @DisplayName("Deve retornar null quando não existir o login informado")
+    void shouldReturnNullWhenPasswordLoginDoesNotExist() {
+        assertNull(userRepositoryGateway.getEncryptPasswordByLogin("login.inexistente"));
     }
 
     @Test
@@ -377,3 +405,4 @@ class UserRepositoryGatewayTest {
     }
 
 }
+

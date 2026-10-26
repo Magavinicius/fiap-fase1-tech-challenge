@@ -7,12 +7,14 @@ services:
     container_name: spring-app
     ports:
       - "8080:8080"
+    env_file:
+      - local.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3307/fiapdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-fiapdb}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-fiapdb}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_DATA_MONGODB_URI: ${SPRING_DATA_MONGODB_URI}
+      SPRING_DATA_MONGODB_URI: ${SPRING_DATA_MONGODB_URI:-mongodb://admin:admin123@localhost:27017/fiapfase2?authSource=admin}
     depends_on:
       db:
         condition: service_healthy
@@ -46,9 +48,11 @@ services:
     container_name: mongodb-fiap
     ports:
       - "27017:27017"
+    env_file:
+      - local.env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-admin123}
       MONGO_INITDB_DATABASE: fiapfase2
     volumes:
       - mongo_data:/data/db
@@ -59,9 +63,9 @@ services:
         - --quiet
         - mongodb://localhost:27017/admin
         - --username
-        - ${MONGO_ROOT_USERNAME}
+        - ${MONGO_ROOT_USERNAME:-admin}
         - --password
-        - ${MONGO_ROOT_PASSWORD}
+        - ${MONGO_ROOT_PASSWORD:-admin123}
         - --authenticationDatabase
         - admin
         - --eval

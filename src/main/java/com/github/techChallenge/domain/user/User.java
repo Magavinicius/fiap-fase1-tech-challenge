@@ -116,6 +116,32 @@ public class User {
             UserLevel userLevel,
             Address address
     ) {
+        Map<String, String> violations = validateCommonData(
+                name, email, login, userLevel, address
+        );
+
+        if (requireText(
+                violations,
+                "password",
+                password,
+                "A senha é obrigatória."
+        ) && (password.length() < 8 || password.length() > 100)) {
+            violations.put(
+                    "password",
+                    "A senha deve possuir entre 8 e 100 caracteres."
+            );
+        }
+
+        throwIfInvalid(violations);
+    }
+
+    private static Map<String, String> validateCommonData(
+            String name,
+            String email,
+            String login,
+            UserLevel userLevel,
+            Address address
+    ) {
         Map<String, String> violations = new LinkedHashMap<>();
 
         if (requireText(
@@ -161,18 +187,6 @@ public class User {
             );
         }
 
-        if (requireText(
-                violations,
-                "password",
-                password,
-                "A senha é obrigatória."
-        ) && (password.length() < 8 || password.length() > 100)) {
-            violations.put(
-                    "password",
-                    "A senha deve possuir entre 8 e 100 caracteres."
-            );
-        }
-
         if (userLevel == null) {
             violations.put(
                     "userLevel",
@@ -182,6 +196,10 @@ public class User {
 
         validateAddress(address, violations);
 
+        return violations;
+    }
+
+    private static void throwIfInvalid(Map<String, String> violations) {
         if (!violations.isEmpty()) {
             throw new InvalidUserDataException(violations);
         }
@@ -293,13 +311,13 @@ public class User {
             UserLevel userLevel,
             Address address
     ) {
-        email = email
-                .trim()
-                .toLowerCase(Locale.ROOT);
+        email = normalize(email);
+        login = normalize(login);
 
-        login = login
-                .trim()
-                .toLowerCase(Locale.ROOT);
+        Map<String, String> violations = validateCommonData(
+                name, email, login, userLevel, address
+        );
+        throwIfInvalid(violations);
 
         this.name = name;
         this.email = email;

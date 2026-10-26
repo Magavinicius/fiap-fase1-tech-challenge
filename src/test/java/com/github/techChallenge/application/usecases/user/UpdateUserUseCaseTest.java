@@ -7,6 +7,7 @@ import com.github.techChallenge.application.gateways.user.IUserGateway;
 import com.github.techChallenge.application.validators.UserValidator;
 import com.github.techChallenge.domain.user.Address;
 import com.github.techChallenge.domain.user.IUserMapper;
+import com.github.techChallenge.domain.user.InvalidUserDataException;
 import com.github.techChallenge.domain.user.User;
 import com.github.techChallenge.domain.user.UserLevel;
 import com.github.techChallenge.domain.user.dto.UserOutputDTO;
@@ -25,9 +26,33 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateUserUseCaseTest {
+
+    private static final LocalDateTime CREATED_AT =
+            LocalDateTime.of(2020, 1, 1, 12, 0);
+    private static final LocalDateTime UPDATED_AT = CREATED_AT.plusHours(1);
+
+    @Test
+    void shouldNotPersistWhenUserDataIsInvalid() {
+        UserUpdateInputDTO input = new UserUpdateInputDTO(
+                "", "user@email.com", "user", UserLevel.CUSTOMER,
+                new Address("Rua A", "10", null, "01000-000",
+                        "Centro", "São Paulo", "SP", "Brasil")
+        );
+        when(gateway.existById(1L)).thenReturn(true);
+        when(validator.emailExists(input.email(), 1L)).thenReturn(false);
+        when(validator.loginExists(input.login(), 1L)).thenReturn(false);
+
+        assertThrows(InvalidUserDataException.class, () -> updateUserUseCase.execute(input, 1L));
+
+        verify(gateway, never()).update(any(User.class), any(Long.class));
+        verifyNoInteractions(mapper);
+    }
 
     @InjectMocks
     private UpdateUserUseCase updateUserUseCase;
@@ -51,7 +76,7 @@ class UpdateUserUseCaseTest {
                 "UF","Brasil");
 
         this.user = new User(1L, "User 1", "user@user.com.br", "user", "password", UserLevel.CUSTOMER,
-                null, address, LocalDateTime.now(), LocalDateTime.now());
+                null, address, CREATED_AT, CREATED_AT);
 
     }
 
@@ -61,16 +86,16 @@ class UpdateUserUseCaseTest {
         User mockUpdatedUser = new User(
             user.getId(),
             "Nome alterado",
-            "email alterado",
+            "alterado@email.com",
             "login alterado",
             "password alterado",
             UserLevel.CUSTOMER,
             null,
             new Address("Rua 2","1234","N/A alterado",
                     "11235-900","Bairro alterado","Cidade alterado",
-                    "UF alterado","Argentinha"),
+                    "RJ","Argentinha"),
             user.getCreatedAt(),
-            LocalDateTime.now()
+            UPDATED_AT
         );
 
         UserOutputDTO convertedOutputDTO = new UserOutputDTO(
@@ -93,14 +118,15 @@ class UpdateUserUseCaseTest {
         UserUpdateInputDTO inputDTO = new UserUpdateInputDTO("User 1","user@user.com.br",
                 "user", UserLevel.CUSTOMER, new Address("Rua 2","1234","N/A alterado",
                 "11235-900","Bairro alterado","Cidade alterado",
-                "UF alterado","Argentinha"));
+                "RJ","Argentinha"));
 
         UserOutputDTO outputDTO = updateUserUseCase.execute(inputDTO, 1L);
 
         assertNotNull(outputDTO.id());
         assertNotNull(outputDTO.createdAt());
         assertNotNull(outputDTO.updatedAt());
-        assertNotEquals(outputDTO.createdAt(), outputDTO.updatedAt());
+        assertEquals(CREATED_AT, outputDTO.createdAt());
+        assertEquals(UPDATED_AT, outputDTO.updatedAt());
         Assertions.assertEquals(mockUpdatedUser.getEmail(), outputDTO.email());
         Assertions.assertEquals(mockUpdatedUser.getLogin(), outputDTO.login());
         Assertions.assertEquals(mockUpdatedUser.getName(), outputDTO.name());
@@ -120,16 +146,16 @@ class UpdateUserUseCaseTest {
         User mockUpdatedUser = new User(
                 user.getId(),
                 "Nome alterado",
-                "email alterado",
+                "alterado@email.com",
                 "login alterado",
                 "password alterado",
                 UserLevel.CUSTOMER,
                 null,
                 new Address("Rua 2","1234","N/A alterado",
                         "11235-900","Bairro alterado","Cidade alterado",
-                        "UF alterado","Argentinha"),
+                        "RJ","Argentinha"),
                 user.getCreatedAt(),
-                LocalDateTime.now()
+                UPDATED_AT
         );
 
         UserOutputDTO convertedOutputDTO = new UserOutputDTO(
@@ -148,7 +174,7 @@ class UpdateUserUseCaseTest {
         UserUpdateInputDTO inputDTO = new UserUpdateInputDTO("User 1","user@user.com.br",
                 "user", UserLevel.CUSTOMER, new Address("Rua 2","1234","N/A alterado",
                 "11235-900","Bairro alterado","Cidade alterado",
-                "UF alterado","Argentinha"));
+                "RJ","Argentinha"));
 
         assertThrows(UserNotFoundException.class, () -> updateUserUseCase.execute(inputDTO, 1L));
 
@@ -160,16 +186,16 @@ class UpdateUserUseCaseTest {
         User mockUpdatedUser = new User(
                 user.getId(),
                 "Nome alterado",
-                "email alterado",
+                "alterado@email.com",
                 "login alterado",
                 "password alterado",
                 UserLevel.CUSTOMER,
                 null,
                 new Address("Rua 2","1234","N/A alterado",
                         "11235-900","Bairro alterado","Cidade alterado",
-                        "UF alterado","Argentinha"),
+                        "RJ","Argentinha"),
                 user.getCreatedAt(),
-                LocalDateTime.now()
+                UPDATED_AT
         );
 
         UserOutputDTO convertedOutputDTO = new UserOutputDTO(
@@ -189,7 +215,7 @@ class UpdateUserUseCaseTest {
         UserUpdateInputDTO inputDTO = new UserUpdateInputDTO("User 1","user@user.com.br",
                 "user", UserLevel.CUSTOMER, new Address("Rua 2","1234","N/A alterado",
                 "11235-900","Bairro alterado","Cidade alterado",
-                "UF alterado","Argentinha"));
+                "RJ","Argentinha"));
 
         assertThrows(DuplicateEmailException.class, () -> updateUserUseCase.execute(inputDTO, 1L));
     }
@@ -200,16 +226,16 @@ class UpdateUserUseCaseTest {
         User mockUpdatedUser = new User(
                 user.getId(),
                 "Nome alterado",
-                "email alterado",
+                "alterado@email.com",
                 "login alterado",
                 "password alterado",
                 UserLevel.CUSTOMER,
                 null,
                 new Address("Rua 2","1234","N/A alterado",
                         "11235-900","Bairro alterado","Cidade alterado",
-                        "UF alterado","Argentinha"),
+                        "RJ","Argentinha"),
                 user.getCreatedAt(),
-                LocalDateTime.now()
+                UPDATED_AT
         );
 
         UserOutputDTO convertedOutputDTO = new UserOutputDTO(
@@ -230,7 +256,7 @@ class UpdateUserUseCaseTest {
         UserUpdateInputDTO inputDTO = new UserUpdateInputDTO("User 1","user@user.com.br",
                 "user", UserLevel.CUSTOMER, new Address("Rua 2","1234","N/A alterado",
                 "11235-900","Bairro alterado","Cidade alterado",
-                "UF alterado","Argentinha"));
+                "RJ","Argentinha"));
 
         assertThrows(DuplicateLoginException.class, () -> updateUserUseCase.execute(inputDTO, 1L));
     }

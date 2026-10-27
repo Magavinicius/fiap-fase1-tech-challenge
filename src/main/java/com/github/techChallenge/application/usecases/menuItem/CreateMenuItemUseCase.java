@@ -6,16 +6,19 @@ import com.github.techChallenge.domain.menuItem.IMenuItemMapper;
 import com.github.techChallenge.domain.menuItem.MenuItem;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemCreateInputDTO;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemOutputDTO;
+import com.github.techChallenge.application.validators.RestaurantAccessPolicy;
+import org.springframework.transaction.annotation.Transactional;
 
 public class CreateMenuItemUseCase extends MenuItemUseCase {
+    private final RestaurantAccessPolicy access;
 
-    public CreateMenuItemUseCase(IMenuItemGateway gateway, IMenuItemMapper mapper) {
+    public CreateMenuItemUseCase(IMenuItemGateway gateway, IMenuItemMapper mapper, RestaurantAccessPolicy access) {
         super(gateway, mapper);
+        this.access = access;
     }
 
-    public MenuItemOutputDTO execute(MenuItemCreateInputDTO dto) {
-        // TODO: o módulo Restaurant ainda não existe, então o restaurantId não é validado aqui.
-        // Quando existir, checar se o restaurante existe e lançar RestaurantNotFoundException.
+    @Transactional
+    public MenuItemOutputDTO execute(MenuItemCreateInputDTO dto, Long authenticatedUserId) {
         MenuItem menuItem = MenuItem.create(
                 dto.name(),
                 dto.description(),
@@ -25,6 +28,8 @@ public class CreateMenuItemUseCase extends MenuItemUseCase {
                 dto.restaurantId()
         );
 
+        access.requireOwner(menuItem.getRestaurantId(), authenticatedUserId);
+
         if (this.gateway.nameExists(menuItem.getName(), menuItem.getRestaurantId()))
             throw new DuplicateMenuItemNameException(menuItem.getName());
 
@@ -32,3 +37,4 @@ public class CreateMenuItemUseCase extends MenuItemUseCase {
         return this.mapper.fromDomainToOutputDTO(menuItem);
     }
 }
+

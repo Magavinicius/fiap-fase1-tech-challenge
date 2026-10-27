@@ -1,6 +1,7 @@
 package com.github.techChallenge.application.exceptions;
 
 import com.github.techChallenge.domain.user.InvalidUserDataException;
+import com.github.techChallenge.domain.validation.DomainValidationException;
 import com.github.techChallenge.shared.ConflictException;
 import com.github.techChallenge.shared.NotFoundException;
 import com.github.techChallenge.shared.UnauthorizedException;
@@ -25,6 +26,43 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(RestaurantNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleRestaurantNotFound(RestaurantNotFoundException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Restaurante não encontrado", exception.getMessage(), exception.getErrorCode(), request);
+    }
+
+    @ExceptionHandler(RestaurantCategoryNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleRestaurantCategoryNotFound(RestaurantCategoryNotFoundException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Categoria não encontrada", exception.getMessage(), exception.getErrorCode(), request);
+    }
+
+    @ExceptionHandler(DuplicateRestaurantTitleException.class)
+    public ResponseEntity<ProblemDetail> handleDuplicateRestaurant(DuplicateRestaurantTitleException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, "Restaurante já cadastrado", exception.getMessage(), exception.getErrorCode(), request);
+    }
+
+    @ExceptionHandler(RestaurantHasMenuItemsException.class)
+    public ResponseEntity<ProblemDetail> handleRestaurantHasItems(RestaurantHasMenuItemsException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, "Restaurante possui itens no cardápio", exception.getMessage(), exception.getErrorCode(), request);
+    }
+
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<ProblemDetail> handleForbiddenOperation(ForbiddenOperationException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Acesso negado", exception.getMessage(), exception.getErrorCode(), request);
+    }
+
+    @ExceptionHandler(DomainValidationException.class)
+    public ResponseEntity<ProblemDetail> handleDomainValidation(DomainValidationException exception, HttpServletRequest request) {
+        ProblemDetail problem = problemDetailFactory.create(HttpStatus.BAD_REQUEST, "Dados inválidos", exception.getMessage(), "VALIDATION_ERROR", request);
+        problem.setProperty("violations", exception.getViolations());
+        return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(org.springframework.dao.OptimisticLockingFailureException.class)
+    public ResponseEntity<ProblemDetail> handleConcurrentUpdate(org.springframework.dao.OptimisticLockingFailureException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflito de atualização", "O recurso foi alterado por outra operação. Consulte os dados atuais e tente novamente.", "CONCURRENT_UPDATE", request);
+    }
 
     private static final Logger logger =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);

@@ -7,17 +7,23 @@ import com.github.techChallenge.domain.menuItem.IMenuItemMapper;
 import com.github.techChallenge.domain.menuItem.MenuItem;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemOutputDTO;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemUpdateInputDTO;
+import com.github.techChallenge.application.validators.RestaurantAccessPolicy;
+import org.springframework.transaction.annotation.Transactional;
 
 public class UpdateMenuItemUseCase extends MenuItemUseCase {
+    private final RestaurantAccessPolicy access;
 
-    public UpdateMenuItemUseCase(IMenuItemGateway gateway, IMenuItemMapper mapper) {
+    public UpdateMenuItemUseCase(IMenuItemGateway gateway, IMenuItemMapper mapper, RestaurantAccessPolicy access) {
         super(gateway, mapper);
+        this.access = access;
     }
 
-    public MenuItemOutputDTO execute(MenuItemUpdateInputDTO dto, Long id) {
+    @Transactional
+    public MenuItemOutputDTO execute(MenuItemUpdateInputDTO dto, Long id, Long authenticatedUserId) {
         if (!this.gateway.existById(id)) throw new MenuItemNotFoundException(id);
 
         MenuItem menuItem = this.gateway.find(id);
+        access.requireOwner(menuItem.getRestaurantId(), authenticatedUserId);
         menuItem.update(
                 dto.name(),
                 dto.description(),
@@ -33,3 +39,4 @@ public class UpdateMenuItemUseCase extends MenuItemUseCase {
         return this.mapper.fromDomainToOutputDTO(menuItem);
     }
 }
+

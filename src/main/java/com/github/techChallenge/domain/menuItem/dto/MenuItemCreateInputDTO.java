@@ -1,39 +1,27 @@
 package com.github.techChallenge.domain.menuItem.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
 public record MenuItemCreateInputDTO(
 
-        @Schema(description = "Nome do item do cardápio", example = "X-Burger")
-        @NotBlank(message = "O nome é obrigatório.")
-        @Size(max = 100, message = "O nome deve possuir no máximo 100 caracteres.")
+        @Schema(description = "Nome do item do cardápio", example = "X-Burger", maxLength = 100, requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
 
-        @Schema(description = "Descrição do item", example = "Pão, hambúrguer e queijo")
-        @Size(max = 255, message = "A descrição deve possuir no máximo 255 caracteres.")
+        @Schema(description = "Descrição do item", example = "Pão, hambúrguer e queijo", maxLength = 255, requiredMode = Schema.RequiredMode.REQUIRED)
         String description,
 
-        @Schema(description = "Preço do item", example = "29.90")
-        @NotNull(message = "O preço é obrigatório.")
-        @Positive(message = "O preço deve ser maior que zero.")
+        @Schema(description = "Preço do item", example = "29.90", requiredMode = Schema.RequiredMode.REQUIRED)
         BigDecimal price,
 
-        @Schema(description = "Indica se o item só pode ser pedido no restaurante", example = "false")
-        @NotNull(message = "A disponibilidade é obrigatória.")
+        @Schema(description = "Indica se o item só pode ser pedido no restaurante", example = "false", requiredMode = Schema.RequiredMode.REQUIRED)
         Boolean dineInOnly,
 
-        @Schema(description = "Caminho da foto do prato", example = "/fotos/x-burger.png")
-        @Size(max = 255, message = "O caminho da foto deve possuir no máximo 255 caracteres.")
+        @Schema(description = "Caminho da foto do prato", example = "/fotos/x-burger.png", maxLength = 255, requiredMode = Schema.RequiredMode.REQUIRED)
         String photoPath,
 
-        // TODO: só é validado como obrigatório; a existência do restaurante ainda não é checada (módulo Restaurant não existe).
-        @Schema(description = "ID do restaurante dono do item", example = "1")
-        @NotNull(message = "O restaurante é obrigatório.")
+        @Schema(description = "ID do restaurante dono do item", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
         Long restaurantId) {
 }
+

@@ -51,4 +51,10 @@ public class MenuItemGateway implements IMenuItemGateway {
     public boolean existById(Long id) {
         return this.repository.existsById(id);
     }
+
+    @Override
+    public boolean existsByRestaurant(Long restaurantId) {
+        return this.repository.existsByRestaurantId(restaurantId);
+    }
 }
+

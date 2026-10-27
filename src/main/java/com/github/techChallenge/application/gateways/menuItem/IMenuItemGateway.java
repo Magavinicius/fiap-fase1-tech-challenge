@@ -12,4 +12,6 @@ public interface IMenuItemGateway {
     boolean nameExists(String name, Long restaurantId);
     boolean nameExists(String name, Long restaurantId, Long id);
     boolean existById(Long id);
+    boolean existsByRestaurant(Long restaurantId);
 }
+

@@ -12,4 +12,6 @@ public interface IMenuItemRepository {
     boolean existsByNameAndRestaurantId(String name, Long restaurantId);
     boolean existsByNameAndRestaurantIdAndIdNot(String name, Long restaurantId, Long id);
     boolean existsById(Long id);
+    boolean existsByRestaurantId(Long restaurantId);
 }
+

@@ -3,6 +3,8 @@ package com.github.techChallenge.infrastructure.controllers.user;
 import com.github.techChallenge.application.usecases.user.*;
 import com.github.techChallenge.application.validators.UserValidator;
 import com.github.techChallenge.domain.user.dto.*;
+import com.github.techChallenge.infrastructure.security.UserAccountAccess;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,11 +63,13 @@ public class UserController implements IUserController {
     }
 
     @PutMapping("/{id}")
+    @SecurityRequirement(name = "basicAuth")
     @Override
     public ResponseEntity<UserOutputDTO> update(
             @Valid @RequestBody UserUpdateInputDTO dto,
             @PathVariable("id") Long id
     ) {
+        UserAccountAccess.requireSelf(id);
         UserOutputDTO response = this.updateUserUseCase.execute(dto, id);
 
         return ResponseEntity.ok(response);
@@ -102,16 +106,21 @@ public class UserController implements IUserController {
 
     @Override
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "basicAuth")
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
+        UserAccountAccess.requireSelf(id);
         this.deleteUserUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @PatchMapping("/change-password/{id}")
+    @SecurityRequirement(name = "basicAuth")
     public ResponseEntity<Map<String, Object>> changePassword(
             @PathVariable("id") Long id,
             @Valid @RequestBody UserChangePasswordInputDTO dto) {
+        var authenticatedUser = UserAccountAccess.requireSelf(id);
+        UserAccountAccess.requireOwnLogin(authenticatedUser, dto.login());
         boolean sucess = this.changePasswordUser.changePassword(dto);
         if(!sucess){ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT);};
         Map<String, Object> response = new HashMap<>();
@@ -136,10 +145,13 @@ public class UserController implements IUserController {
 
     @Override
     @PatchMapping("/grant-level")
-    public ResponseEntity<UserOutputDTO> grantLevel(GrantUserTypeInputDTO dto) {
+    @SecurityRequirement(name = "basicAuth")
+    public ResponseEntity<UserOutputDTO> grantLevel(@RequestBody GrantUserTypeInputDTO dto) {
+        UserAccountAccess.requireSelf(dto.userID());
         UserOutputDTO response = this.grantUserTypeUseCase.execute(dto);
 
         return ResponseEntity.ok(response);
     }
 
 }
+

@@ -18,7 +18,7 @@ public class UpdateRestaurantCategoryUseCase extends RestaurantCategoryUseCase {
     }
 
     public RestaurantCategoryOutputDTO execute(RestaurantCategoryUpdateInputDTO dto, int id) {
-        if (!this.gateway.existById(id)) throw new RestaurantCategoryNotFoundException("Nível de usuário não encontrado");
+        if (!this.gateway.existById(id)) throw new RestaurantCategoryNotFoundException("Código da categoria do restaurante não foi localizado");
 
         if (this.restaurantCategoryValidator.titleExists(dto.title(), id))
             throw new DuplicateRestaurantCategoryTitleException(dto.title());

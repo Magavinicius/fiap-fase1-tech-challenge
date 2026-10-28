@@ -1,6 +1,6 @@
-# Tech Challenge - FIAP (Fase 1)
+# Tech Challenge - FIAP (Fase 2)
 
-API REST de cadastro e gerenciamento de usuários, feita em **Java 21 + Spring Boot** com **MySQL**,
+API REST de usuários, restaurantes e itens do cardápio, feita em **Java 21 + Spring Boot** com **MySQL e MongoDB**,
 organizada em Clean Architecture (`domain`, `application`, `infrastructure`).
 
 Funcionalidades principais (`/api/v1/user`):
@@ -15,6 +15,12 @@ Funcionalidades principais (`/api/v1/user`):
 | PATCH | `/api/v1/user/change-password/{id}` | Troca a senha |
 | DELETE | `/api/v1/user/{id}` | Remove um usuário |
 | POST | `/api/v1/user/auth-login` | Valida login e senha |
+
+Os endpoints de restaurantes (`/api/v1/restaurant`) e itens do cardápio (`/api/v1/menu-item`),
+as regras de proprietário, os exemplos e os testes estão em [Restaurantes e cardápios](docs/RESTAURANTES_CARDAPIOS.md).
+
+As consultas são públicas. As escritas de restaurantes e cardápios usam HTTP Basic e exigem um usuário OWNER.
+As alterações de conta, exclusão, troca de senha e associação de tipo exigem autenticação da própria conta.
 
 ## Pré-requisitos
 
@@ -38,6 +44,9 @@ Depois preencha as informações com as credenciais necessárias:
 | `MYSQL_DATABASE` | Nome do banco de dados |
 | `SPRING_DATASOURCE_USERNAME` | Usuário da aplicação no banco |
 | `SPRING_DATASOURCE_PASSWORD` | Senha desse usuário |
+| `MONGO_ROOT_USERNAME` | Usuário administrador do MongoDB |
+| `MONGO_ROOT_PASSWORD` | Senha desse usuário |
+| `SPRING_DATA_MONGODB_URI` | URI da aplicação no Docker, usando o host `mongodb` e `authSource=admin` |
 
 > O `local.env` não é versionado (está no `.gitignore`), pois contém credenciais.
 
@@ -47,9 +56,10 @@ Depois preencha as informações com as credenciais necessárias:
 docker compose --env-file local.env up --build
 ```
 
-Isso sobe dois containers:
+Isso sobe três containers:
 
 - `mysql-db` — MySQL 8.4 na porta `3307`
+- `mongodb-fiap` — MongoDB 8 na porta `27017`
 - `spring-app` — a API na porta `8080` (só inicia depois que o banco está saudável)
 
 As tabelas são criadas automaticamente pelo Hibernate (`ddl-auto=update`).
@@ -57,14 +67,10 @@ As tabelas são criadas automaticamente pelo Hibernate (`ddl-auto=update`).
 Para parar:
 
 ```bash
-docker compose down
+docker compose --env-file local.env down
 ```
 
-Para parar e apagar também os dados do banco:
-
-```bash
-docker compose down -v
-```
+Os dados são mantidos nos volumes dos bancos quando os containers são removidos sem excluir os volumes.
 
 ## Acessando
 
@@ -76,20 +82,25 @@ docker compose down -v
 Suba apenas o banco e rode a aplicação pelo Maven Wrapper:
 
 ```bash
-docker compose --env-file local.env up db
+docker compose --env-file local.env up -d --wait db mongodb
 ./mvnw spring-boot:run
 ```
 
-> Nesse caso, ajuste `spring.datasource.*` em `src/main/resources/application.properties`
-> para apontar para `localhost` com as credenciais do seu `local.env`.
+> Nesse caso, a configuração padrão de `application.properties` usa MySQL em `localhost:3307`
+> e MongoDB em `localhost:27017`. Use as credenciais do ambiente local.
 
 ## Testes
 
 ```bash
-./mvnw test
+(
+  unset SPRING_DATASOURCE_URL SPRING_MONGODB_URI SPRING_DATA_MONGODB_URI
+  ./mvnw "-Dspring.profiles.active=test" verify
+)
 ```
 
 ## Postman
 
 A pasta `postman/` contém as collections e o environment para testar os endpoints
-(inclusive cenários de erro).
+(inclusive cenários de erro). A collection `restaurantes-cardapios.postman_collection.json`
+cria usuários de demonstração e testa o CRUD e as permissões de restaurantes e cardápios.
+

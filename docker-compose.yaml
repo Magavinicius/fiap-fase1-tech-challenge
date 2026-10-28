@@ -10,7 +10,7 @@ services:
     env_file:
       - local.env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3307/fiapdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/fiapdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-fiapdb}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-fiapdb}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -78,3 +78,4 @@ services:
 volumes:
   db_data:
   mongo_data:
+

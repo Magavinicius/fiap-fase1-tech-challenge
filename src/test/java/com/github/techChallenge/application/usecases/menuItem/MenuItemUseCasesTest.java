@@ -8,6 +8,8 @@ import com.github.techChallenge.domain.menuItem.MenuItem;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemCreateInputDTO;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemOutputDTO;
 import com.github.techChallenge.domain.menuItem.dto.MenuItemUpdateInputDTO;
+import com.github.techChallenge.application.validators.RestaurantAccessPolicy;
+import com.github.techChallenge.application.gateways.restaurant.IRestaurantGateway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +38,12 @@ class MenuItemUseCasesTest {
     @Mock
     private IMenuItemMapper mapper;
 
+    @Mock
+    private RestaurantAccessPolicy access;
+
+    @Mock
+    private IRestaurantGateway restaurants;
+
     private final BigDecimal price = new BigDecimal("29.90");
 
     private final MenuItem saved = new MenuItem(1L, "X-Burger", "Pão e carne",
@@ -56,7 +64,7 @@ class MenuItemUseCasesTest {
         when(mapper.fromDomainToOutputDTO(saved)).thenReturn(output);
 
         // Act
-        MenuItemOutputDTO result = new CreateMenuItemUseCase(gateway, mapper).execute(dto);
+        MenuItemOutputDTO result = new CreateMenuItemUseCase(gateway, mapper, access).execute(dto, 1L);
 
         // Assert
         ArgumentCaptor<MenuItem> captor = ArgumentCaptor.forClass(MenuItem.class);
@@ -78,7 +86,7 @@ class MenuItemUseCasesTest {
 
         // Act + Assert
         assertThrows(DuplicateMenuItemNameException.class,
-                () -> new CreateMenuItemUseCase(gateway, mapper).execute(dto));
+                () -> new CreateMenuItemUseCase(gateway, mapper, access).execute(dto, 1L));
         verify(gateway, never()).create(any());
     }
 
@@ -96,7 +104,7 @@ class MenuItemUseCasesTest {
         when(mapper.fromDomainToOutputDTO(saved)).thenReturn(output);
 
         // Act
-        MenuItemOutputDTO result = new UpdateMenuItemUseCase(gateway, mapper).execute(dto, 1L);
+        MenuItemOutputDTO result = new UpdateMenuItemUseCase(gateway, mapper, access).execute(dto, 1L, 1L);
 
         // Assert
         assertEquals("X-Salada", saved.getName());
@@ -117,7 +125,7 @@ class MenuItemUseCasesTest {
 
         // Act + Assert
         assertThrows(MenuItemNotFoundException.class,
-                () -> new UpdateMenuItemUseCase(gateway, mapper).execute(dto, 99L));
+                () -> new UpdateMenuItemUseCase(gateway, mapper, access).execute(dto, 99L, 1L));
         verify(gateway, never()).update(any(), anyLong());
     }
 
@@ -125,8 +133,8 @@ class MenuItemUseCasesTest {
     @DisplayName("Não deve atualizar para um nome já usado por outro item do restaurante")
     void shouldNotUpdateToDuplicatedName() {
         // Arrange
-        MenuItemUpdateInputDTO dto = new MenuItemUpdateInputDTO("X-Salada", null,
-                price, false, null);
+        MenuItemUpdateInputDTO dto = new MenuItemUpdateInputDTO("X-Salada", "Pão e carne",
+                price, false, "/fotos/x-salada.png");
 
         when(gateway.existById(1L)).thenReturn(true);
         when(gateway.find(1L)).thenReturn(saved);
@@ -134,7 +142,7 @@ class MenuItemUseCasesTest {
 
         // Act + Assert
         assertThrows(DuplicateMenuItemNameException.class,
-                () -> new UpdateMenuItemUseCase(gateway, mapper).execute(dto, 1L));
+                () -> new UpdateMenuItemUseCase(gateway, mapper, access).execute(dto, 1L, 1L));
         verify(gateway, never()).update(any(), anyLong());
     }
 
@@ -176,7 +184,7 @@ class MenuItemUseCasesTest {
         when(mapper.fromDomainPageToOutputDTOPage(domainPage)).thenReturn(outputPage);
 
         // Act
-        Page<MenuItemOutputDTO> result = new ListMenuItemUseCase(gateway, mapper).execute(7L, 0, 10);
+        Page<MenuItemOutputDTO> result = new ListMenuItemUseCase(gateway, mapper, restaurants).execute(7L, 0, 10);
 
         // Assert
         assertEquals(outputPage, result);
@@ -187,9 +195,10 @@ class MenuItemUseCasesTest {
     void shouldDeleteMenuItem() {
         // Arrange
         when(gateway.existById(1L)).thenReturn(true);
+        when(gateway.find(1L)).thenReturn(saved);
 
         // Act
-        new DeleteMenuItemUseCase(gateway, mapper).execute(1L);
+        new DeleteMenuItemUseCase(gateway, mapper, access).execute(1L, 1L);
 
         // Assert
         verify(gateway).delete(1L);
@@ -203,7 +212,8 @@ class MenuItemUseCasesTest {
 
         // Act + Assert
         assertThrows(MenuItemNotFoundException.class,
-                () -> new DeleteMenuItemUseCase(gateway, mapper).execute(99L));
+                () -> new DeleteMenuItemUseCase(gateway, mapper, access).execute(99L, 1L));
         verify(gateway, never()).delete(anyLong());
     }
 }
+

@@ -155,6 +155,10 @@
 						<configuration>
 							<excludes>
 								<exclude>com/github/techChallenge/domain/user/dto/*.class</exclude>
+								<exclude>com/github/techChallenge/domain/restaurantCategory/dto/*.class</exclude>
+								<exclude>com/github/techChallenge/domain/usertype/dto/*.class</exclude>
+								<exclude>com/github/techChallenge/application/gateways/user/*.class</exclude>
+								<exclude>com/github/techChallenge/application/gateways/usertype/*.class</exclude>
 								<exclude>com/github/techChallenge/application/exceptions/*.class</exclude>
 								<exclude>com/github/techChallenge/infrastructure/config/**/*.class</exclude>
 								<exclude>com/github/techChallenge/TechChallengeApplication.class</exclude>

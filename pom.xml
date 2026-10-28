@@ -156,11 +156,11 @@
 						</goals>
 						<configuration>
 							<excludes>
-								<exclude>com/github/techChallenge/domain/user/dto/**/*.class</exclude>
-								<exclude>com/github/techChallenge/application/exceptions/**/*.class</exclude>
+								<exclude>com/github/techChallenge/domain/user/dto/*.class</exclude>
+								<exclude>com/github/techChallenge/application/exceptions/*.class</exclude>
 								<exclude>com/github/techChallenge/infrastructure/config/**/*.class</exclude>
 								<exclude>com/github/techChallenge/TechChallengeApplication.class</exclude>
-								<exclude>com/github/techChallenge/shared/**/*.class</exclude>
+								<exclude>com/github/techChallenge/shared/*.class</exclude>
 							</excludes>
 						</configuration>
 					</execution>
